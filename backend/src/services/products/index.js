@@ -2,6 +2,9 @@ import express from "express";
 import models from "../../db/index.js";
 const Review = models.Review;
 const Product = models.Product;
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const productsRouter = express.Router();
 
@@ -24,6 +27,33 @@ productsRouter.get("/", async (req, res, next) => {
     res.send(data);
   } catch (error) {
     console.log(error);
+    next(error);
+  }
+});
+
+const cloudinaryStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "Strive",
+  },
+});
+
+const upload = multer({ storage: cloudinaryStorage }).single("image");
+
+productsRouter.post("/:id/uploadCover", upload, async (req, res, next) => {
+  try {
+    console.log(req.file);
+    const data = await Product.findAll();
+    let updatedProduct = data.map((d) => {
+      if (d._id === req.params.id) {
+        d.ImageUrl = req.file.path;
+        console.log(d.ImageUrl);
+      }
+      return d;
+    });
+    await Product.create(updatedProduct);
+    res.send(req.file.path);
+  } catch (error) {
     next(error);
   }
 });
