@@ -8,7 +8,15 @@ const reviewsRouter = express.Router();
 
 reviewsRouter.get('/', async (req, res, next) => {
   try {
-   
+    const data = await Review.findAll(
+    //   {
+    //   include: [
+    //     { model: Product, attributes: ["name"] },
+    //   ],
+    // }
+    );
+    res.send(data);
+
   } catch (error) {
     next(error);
   }
@@ -23,6 +31,8 @@ reviewsRouter.get('/:id', async (req, res, next) => {
 });
 reviewsRouter.post('/',  async (req, res, next) => {
   try {
+    const data = await Review.create(req.body);
+    res.send(data);
   
   } catch (error) {
     console.log(error);

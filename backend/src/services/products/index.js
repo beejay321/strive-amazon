@@ -20,7 +20,7 @@ productsRouter.post("/", async (req, res, next) => {
 // get all products
 productsRouter.get("/", async (req, res, next) => {
   try {
-    const data = await Product.findAll();
+    const data = await Product.findAll({ include: [{ model: Review, attributes: ["comment", "rate"] }] });
     res.send(data);
   } catch (error) {
     console.log(error);
@@ -31,12 +31,12 @@ productsRouter.get("/", async (req, res, next) => {
 // get single product
 productsRouter.get("/:id", async (req, res, next) => {
   try {
-    const data = await Product.findAll({ where: { _id: req.params.id } });
-    if (data){
+    const data = await Product.findByPk(req.params.id);
+    if (data) {
       res.send(data);
-    }else{
+    } else {
       res.status(404).send({ message: `product with ${req.params.id} not found` });
-    // next(creatError(404, `product with ${req.params.id} not found`));
+      // next(creatError(404, `product with ${req.params.id} not found`));
     }
   } catch (error) {
     console.log(error);
@@ -47,12 +47,12 @@ productsRouter.get("/:id", async (req, res, next) => {
 // DELETE product
 productsRouter.delete("/:id", async (req, res, next) => {
   try {
-    // const book = await booksSchemaModel.findByIdAndDelete(req.params.id);
-    // if (book) {
-    //   res.status(204).send("deleted");
-    // } else {
-    //   next(creatError(404, `book with ${req.params.id} not found`));
-    // }
+    const rows = await Product.destroy({ where: { _id: req.params.id } });
+    if (rows > 0) {
+      res.send("ok");
+    } else {
+      next(creatError(404, `product with ${req.params.id} not found`));
+    }
   } catch (error) {
     console.log(error);
     next(error);
@@ -62,38 +62,32 @@ productsRouter.delete("/:id", async (req, res, next) => {
 // update/PUT product
 productsRouter.put("/:id", async (req, res, next) => {
   try {
-    // const book = await booksSchemaModel.findByIdAndUpdate(req.params.id, req.body, { runValidators: true, new: true });
-    // res.send(book);
+    const data = await Product.update(req.body, { where: { _id: req.params.id }, returning: true });
+    if (data) {
+      res.send(data);
+    } else {
+      next(creatError(404, `product with ${req.params.id} not found`));
+    }
   } catch (error) {
     console.log(error);
     next(error);
   }
 });
 
-productsRouter.get("/:id/comments", async (req, res, next) => {
+productsRouter.get("/:id/reviews", async (req, res, next) => {
   try {
-    // const comments = await booksSchemaModel.findById(req.params.id, { comments: 1 });
-    // if (comments) {
-    //   res.send(comments);
-    // } else {
-    //   next(creatError(404, `book with ${req.params.id} not found`));
-    // }
+    const data = await Product.findOne({
+      where: { _id: req.params.id },
+      include: [{ model: Review }],
+    });
   } catch (error) {
     console.log(error);
     next(error);
   }
 });
 
-productsRouter.post("/:id/comments", async (req, res, next) => {
+productsRouter.post("/:id/reviews", async (req, res, next) => {
   try {
-    // const singleBook = await booksSchemaModel.findById(req.params.id);
-    // console.log(singleBook);
-    // const newComment = { ...req.body, date: new Date() };
-    // console.log(newComment);
-    // const singleBook = await booksSchemaModel.findByIdAndUpdate(req.params.id, { $push: { comments: newComment } }, { runValidators: true, new: true });
-    // if (newComment) {
-    //   res.send(singleBook);
-    // }
   } catch (error) {
     console.log(error);
     next(error);
